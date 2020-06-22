@@ -5,7 +5,7 @@ from user.models import CustomUser
 
 
 class Jwt(models.Model):
-    user = models.ForeignKey(
+    user = models.OneToOneField(
         CustomUser, related_name="login_user", on_delete=models.CASCADE)
     access = models.TextField()
     refresh = models.TextField()
