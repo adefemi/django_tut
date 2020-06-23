@@ -45,7 +45,7 @@ class LoginView(APIView):
             password=serializer.validated_data['password'])
 
         if not user:
-            return Response({"error": "Invalid email or password"}, status="400")
+            raise Exception("Invalid email or password")
 
         Jwt.objects.filter(user_id=user.id).delete()
 
@@ -82,9 +82,9 @@ class RefreshView(APIView):
             active_jwt = Jwt.objects.get(
                 refresh=serializer.validated_data["refresh"])
         except Jwt.DoesNotExist:
-            return Response({"error": "refresh token not found"}, status="400")
+            raise Exception("refresh token not found")
         if not Authentication.verify_token(serializer.validated_data["refresh"]):
-            return Response({"error": "Token is invalid or has expired"})
+            raise Exception("Token is invalid or has expired")
 
         access = get_access_token({"user_id": active_jwt.user.id})
         refresh = get_refresh_token()
@@ -94,11 +94,3 @@ class RefreshView(APIView):
         active_jwt.save()
 
         return Response({"access": access, "refresh": refresh})
-
-
-class GetSecuredInfo(APIView):
-    permission_classes = [IsAuthenticated]
-
-    def get(self, request):
-        print(request.user)
-        return Response({"data": "This is a secured info"})

@@ -59,7 +59,8 @@ MIDDLEWARE = [
 ]
 
 REST_FRAMEWORK = {
-    "DEFAULT_AUTHENTICATION_CLASSES": ("gateway.authentication.Authentication", )
+    "DEFAULT_AUTHENTICATION_CLASSES": ("gateway.authentication.Authentication", ),
+    "EXCEPTION_HANDLER": "gateway.custom_handlers.custom_exception_handler"
 }
 
 INTERNAL_IPS = (
