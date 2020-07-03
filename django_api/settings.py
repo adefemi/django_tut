@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'gateway',
     'django_seed',
     'debug_toolbar',
+    'event_controller',
     'cloudinary_storage',
     'user'
 ]
