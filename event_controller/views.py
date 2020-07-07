@@ -1,6 +1,7 @@
-from rest_framework.viewset import ModelViewSet
+from rest_framework.viewsets import ModelViewSet
 from .serializers import EventMain, EventMainSerializer, AddressGlobalSerializer, EventFeatureSerializer
 from rest_framework.response import Response
+from user.models import AddressGlobal
 
 
 class EventMainView(ModelViewSet):
@@ -16,11 +17,15 @@ class EventMainView(ModelViewSet):
         data = {**request.data, "address_info_id": a_serializer.data["id"]}
 
         e_serializer = self.serializer_class(data=data)
-        e_serializer.is_valid(raise_exception=True)
+        if not e_serializer.is_valid():
+            AddressGlobal.objects.filter(id=a_serializer.data["id"]).delete()
+            raise Exception(e_serializer.errors)
         e_serializer.save()
 
         features = request.data.get("features", None)
         if not features:
+            AddressGlobal.objects.filter(
+                id=a_serializer.data["id"]).delete()
             raise Exception("features field is required")
 
         if not isinstance(features, list):
@@ -28,12 +33,18 @@ class EventMainView(ModelViewSet):
 
         data = []
         for f in features:
+            if not isinstance(f, dict):
+                AddressGlobal.objects.filter(
+                    id=a_serializer.data["id"]).delete()
+                raise Exception("Feature instance must be an object")
             data.append({
                 **f, "eventmain_id": e_serializer.data["id"]
             })
 
-        f_serializer = AddressGlobalSerializer(data=data, many=True)
-        f_serializer.is_valid(raise_exception=True)
+        f_serializer = EventFeatureSerializer(data=data, many=True)
+        if not f_serializer.is_valid():
+            AddressGlobal.objects.filter(id=a_serializer.data["id"]).delete()
+            raise Exception(f_serializer.errors)
         f_serializer.save()
 
-        return Response(e_serializer.data, status=201)
+        return Response(self.serializer_class(self.get_queryset().get(id=e_serializer.data["id"])).data, status=201)
